@@ -14,10 +14,13 @@ module Spree
         # line_items which have 0 quantity will be lost and couldn't be tracked
         # so tracking is done before the execution of next statement
         order.line_items = order.line_items.select { |li| li.quantity > 0 }
-        persist_totals
+        # Update totals, then check if the order is eligible for any cart promotions.
+        # If we do not update first, then the item total will be wrong and ItemTotal
+        # promotion rules would not be triggered.
+        reload_totals
         PromotionHandler::Cart.new(order).activate
         order.ensure_updated_shipments
-        persist_totals
+        reload_totals
         true
       else
         false
@@ -34,6 +37,7 @@ module Spree
       ).track
       line_item
     end
+
   end
 end
 
