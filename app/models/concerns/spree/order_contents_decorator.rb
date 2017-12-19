@@ -27,6 +27,14 @@ module Spree
       end
     end
 
+    def remove(variant, quantity = 1, options = {})
+      line_item = grab_line_item_by_variant(variant, true, options)
+      saved_quantity = line_item.quantity
+      line_item = remove_from_line_item(variant, quantity, options)
+      line_item.previous_changes[:quantity] = [saved_quantity,line_item.quantity]
+      after_add_or_remove(line_item, options)
+    end
+
     private
 
     # Override: Add tracking entry after a line_item is added or removed
